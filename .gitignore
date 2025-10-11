@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Gradle files
 .gradle/
 build/
@@ -32,3 +33,56 @@ google-services.json
 
 # Android Profiling
 *.hprof
+=======
+# -------------------------------------------------------------------
+# ESP-IDF / Embedded Project .gitignore
+# -------------------------------------------------------------------
+
+# Build and output directories
+build/
+sdkconfig.old
+*.bin
+*.elf
+*.map
+*.log
+
+# VSCode and CLion project settings
+.vscode/
+.idea/
+
+# Python virtual environments
+venv/
+.env/
+__pycache__/
+*.pyc
+
+# ESP-IDF tools cache and dependencies
+tools/
+dist/
+*.so
+*.dll
+*.exe
+*.a
+
+# NVS and partition files generated during build
+*.csv
+*.hex
+
+# Core dumps and crash files
+core
+*.core
+*.bak
+
+# Temporary files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Credentials (if you store Wi-Fi credentials separately)
+wifi_config.h
+secrets.h
+private_*.h
+
+>>>>>>> c7f9f92 (Initial commit)
