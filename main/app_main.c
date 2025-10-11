@@ -80,12 +80,12 @@ void app_main(void)
     // init and start ota
     bmi_spi_init();
     i2c_init();
-   // ota_init();
+    ota_init();
     // spi_init();
     // configure_led();
-    //xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
+    xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
     xTaskCreate(&poll_sensor, "BMI Sensor", 4096, NULL, 1, NULL);
-    //xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, NULL);
-    // xTaskCreate(udp_client_task, "udp_client", 4096, NULL, 5, NULL);
+    xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, NULL);
+    //xTaskCreate(udp_client_task, "udp_client", 4096, NULL, 5, NULL);
     // xTaskCreate(&led_run, "Task 4", 2048, NULL, 1, NULL);
 }
