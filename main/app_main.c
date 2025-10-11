@@ -16,6 +16,12 @@
 #include <sys/socket.h>
 
 const char *TAG = "BMCU: main";
+
+//Task handles 
+static TaskHandle_t udp_server_task_handle = NULL;
+static TaskHandle_t simple_ota_example_task_handle = NULL;
+
+
 #define BLINK_GPIO 2
 static uint8_t s_led_state = 0;
 esp_reset_reason_t reason;
@@ -37,6 +43,26 @@ esp_reset_reason_t reason;
 //         vTaskDelay(1000 / portTICK_PERIOD_MS);
 //     }
 // }
+
+void stop_udp_server_task()
+{
+    if (udp_server_task_handle != NULL)
+    {
+        vTaskDelete(udp_server_task_handle);
+        udp_server_task_handle = NULL;
+        ESP_LOGI(TAG,"stopped udp server");
+    }
+}
+
+void stop_simple_ota_example_task()
+{
+    if (simple_ota_example_task_handle != NULL)
+    {
+        vTaskDelete(simple_ota_example_task_handle);
+        simple_ota_example_task_handle = NULL;
+        ESP_LOGI(TAG,"stopped ota");
+    }
+}
 
 static void configure_led(void)
 {
@@ -88,8 +114,8 @@ void app_main(void)
     if (err == ESP_OK)
     {
         // proceed to create udp and ota task
-        xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
-        xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, NULL);
+        xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, &simple_ota_example_task_handle);
+        xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, &udp_server_task_handle);
     }
 
     // spi_init();

@@ -163,18 +163,3 @@ static void get_sha256_of_partitions(void)
     esp_partition_get_sha256(esp_ota_get_running_partition(), sha_256);
     print_sha256(sha_256, "SHA-256 for current firmware: ");
 }
-
-void ota_init(void)
-{
-    get_sha256_of_partitions();
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    esp_err_t ret = example_connect();  // try connecting to Wi-Fi
-    if (ret != ESP_OK) {
-        ESP_LOGW("OTA", "Wi-Fi not available, will retry later...");
-        // Do NOT reset, just skip OTA for now
-        return;
-    }
-
-    esp_wifi_set_ps(WIFI_PS_NONE);
-}

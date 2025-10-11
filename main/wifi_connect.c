@@ -14,6 +14,8 @@
 #define ESP_WIFI_PASS "#Iamroot"
 #define ESP_MAXIMUM_RETRY 10
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA_WPA2_PSK
+extern void stop_simple_ota_example_task(void);
+extern void stop_udp_server_task(void);
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
@@ -36,7 +38,9 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
     {
-                
+        //wifi has disconnect so we need to free the network tasks 
+        stop_simple_ota_example_task();
+        stop_udp_server_task();
         if (s_retry_num < ESP_MAXIMUM_RETRY)
         {
             esp_wifi_connect();
