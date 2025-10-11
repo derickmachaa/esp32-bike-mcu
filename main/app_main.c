@@ -77,15 +77,23 @@ void app_main(void)
     }
 
     ESP_ERROR_CHECK(err);
-    // init and start ota
+    // start sensors first wifi is slow will pickup later
+    //  init and start ota
     bmi_spi_init();
     i2c_init();
-    ota_init();
+    xTaskCreate(&poll_sensor, "BMI Sensor", 4096, NULL, 1, NULL);
+
+    // check whether to add udp and
+    err = wifi_init_sta();
+    if (err == ESP_OK)
+    {
+        // proceed to create udp and ota task
+        xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
+        xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, NULL);
+    }
+
     // spi_init();
     // configure_led();
-    xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
-    xTaskCreate(&poll_sensor, "BMI Sensor", 4096, NULL, 1, NULL);
-    xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, NULL);
-    //xTaskCreate(udp_client_task, "udp_client", 4096, NULL, 5, NULL);
+    // xTaskCreate(udp_client_task, "udp_client", 4096, NULL, 5, NULL);
     // xTaskCreate(&led_run, "Task 4", 2048, NULL, 1, NULL);
 }

@@ -6,3 +6,4 @@ extern void poll_sensor();
 extern void udp_create_socket();
 extern void led_run(void *pvParameters);
 extern void udp_server_task(void *pvParameters);
+extern esp_err_t wifi_init_sta(void);

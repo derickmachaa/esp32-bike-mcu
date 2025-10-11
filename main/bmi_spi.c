@@ -242,7 +242,7 @@ void bmi_spi_init(void)
 
 void poll_sensor(void)
 {
-    udp_socket_init();
+    //udp_socket_init();
     char msg[128];
     xSemaphoreGive(rdySem);
     bmi160_data_t data;
@@ -269,10 +269,10 @@ void poll_sensor(void)
         // ESP_LOGI(TAG, "count is %d", data.seq);
         // snprintf(msg, sizeof(msg), "Time: %lld | Accel[g]: X=%.3f Y=%.3f Z=%.3f | Gyro[dps]: X=%.2f Y=%.2f Z=%.2f | SeqNo: %d \n", ms, data.ax, data.ay, data.az, data.gx, data.gy, data.gz, data.seq);
         snprintf(msg, sizeof(msg), "%lld,%.3f,%.3f,%.3f,%.2f,%.2f,%.2f,%d \n", ms, data.ax, data.ay, data.az, data.gx, data.gy, data.gz, data.seq);
-        udp_send_data(msg);
+       // udp_send_data(msg);
         data.seq++;
         // ESP_LOGI(TAG, "Accel[g]: X=%.3f Y=%.3f Z=%.3f | Gyro[dps]: X=%.2f Y=%.2f Z=%.2f", d.ax, d.ay, d.az, d.gx, d.gy, d.gz);
         // vTaskDelay(pdMS_TO_TICKS(500));
     }
-     udp_socket_close();
+    // udp_socket_close();
 }
