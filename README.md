@@ -5,6 +5,14 @@ a diy bike mcu based on esp32.
 | ----------------- | -------- |
 | IMU in Use (SPI protocol)       | BMI160  |
 
+##wifi config
+Wifi config is defined inside wifi_creds.h feel free to define any
+Current value is
+| WIFI SSID | M4Ch44 |
+|-----------| -------|
+|WIFI PASS  | #Iamroot |
+|-----------|----------|
+
 This is a bike mcu that combines BMI160 to detect when deceleration is happening and turns on the lights
 
 ## Configuration
