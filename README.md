@@ -1,5 +1,7 @@
 # esp32-bike-mcu
 a diy bike mcu based on esp32.
+This is a bike mcu that combines BMI160 to detect when deceleration is happening and turns on the lights
+
 
 | Supported Targets | ESP32-C3 | 
 | ----------------- | -------- |
@@ -8,12 +10,10 @@ a diy bike mcu based on esp32.
 ##wifi config
 Wifi config is defined inside wifi_creds.h feel free to define any
 Current value is
-| WIFI SSID | M4Ch44 |
+| WIFI SSID | WIFI PASS |
 |-----------| -------|
-|WIFI PASS  | #Iamroot |
-|-----------|----------|
+|M4Ch44  | #Iamroot |
 
-This is a bike mcu that combines BMI160 to detect when deceleration is happening and turns on the lights
 
 ## Configuration
 Run `idf.py menuconfig`.
