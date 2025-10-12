@@ -20,7 +20,10 @@ const char *TAG = "BMCU: main";
 //Task handles 
 static TaskHandle_t udp_server_task_handle = NULL;
 static TaskHandle_t simple_ota_example_task_handle = NULL;
+static TaskHandle_t bmi_send_sensor_data_task_handle = NULL;
 
+//Queues for data
+QueueHandle_t bmi_upload_data_queue = NULL;
 
 #define BLINK_GPIO 2
 static uint8_t s_led_state = 0;
@@ -61,6 +64,16 @@ void stop_simple_ota_example_task()
         vTaskDelete(simple_ota_example_task_handle);
         simple_ota_example_task_handle = NULL;
         ESP_LOGI(TAG,"stopped ota");
+    }
+}
+
+void stop_bmi_send_sensor_data()
+{
+    if (bmi_send_sensor_data_task_handle != NULL)
+    {
+        vTaskDelete(bmi_send_sensor_data_task_handle);
+        bmi_send_sensor_data_task_handle = NULL;
+        ESP_LOGI(TAG,"stopped upload of data");
     }
 }
 
@@ -107,7 +120,7 @@ void app_main(void)
     //  init and start ota
     bmi_spi_init();
     i2c_init();
-    xTaskCreate(&poll_sensor, "BMI Sensor", 4096, NULL, 1, NULL);
+    xTaskCreate(&poll_sensor, "BMI Sensor", 4096, NULL, 4, NULL);
 
     // check whether to add udp and
     err = wifi_init_sta();
@@ -116,6 +129,8 @@ void app_main(void)
         // proceed to create udp and ota task
         xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, &simple_ota_example_task_handle);
         xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, &udp_server_task_handle);
+        xTaskCreate(&bmi_send_sensor_data_task, "bmi_upload", 4096,NULL, 5, &bmi_send_sensor_data_task_handle);
+
     }
 
     // spi_init();

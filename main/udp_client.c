@@ -3,7 +3,7 @@
 #include "lwip/sockets.h"
 #include "esp_log.h"
 
-#define HOST_IP_ADDR "192.168.43.1"
+#define HOST_IP_ADDR "192.168.8.2"
 #define PORT 3337
 
 static const char *TAG = "BMCU_UDP";
@@ -28,7 +28,7 @@ void udp_socket_init(void)
         .tv_sec = 5,
         .tv_usec = 0,
     };
-    setsockopt(udp_sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    //setsockopt(udp_sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
   //  ESP_LOGI(TAG, "UDP socket ready for %s:%d", HOST_IP_ADDR, PORT);
 }

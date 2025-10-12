@@ -9,13 +9,13 @@
 #include "nvs_flash.h"
 #include "lwip/err.h"
 #include "lwip/sys.h"
+#include "wifi_creds.h"
 
-#define ESP_WIFI_SSID "M4Ch44"
-#define ESP_WIFI_PASS "#Iamroot"
 #define ESP_MAXIMUM_RETRY 10
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA_WPA2_PSK
 extern void stop_simple_ota_example_task(void);
 extern void stop_udp_server_task(void);
+extern void stop_bmi_send_sensor_data(void);
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
@@ -38,9 +38,10 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
     {
-        //wifi has disconnect so we need to free the network tasks 
+        // wifi has disconnect so we need to free the network tasks
         stop_simple_ota_example_task();
         stop_udp_server_task();
+        stop_bmi_send_sensor_data();
         if (s_retry_num < ESP_MAXIMUM_RETRY)
         {
             esp_wifi_connect();
@@ -50,6 +51,7 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
         else
         {
             xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
+            esp_wifi_stop();
         }
         ESP_LOGI(TAG, "connect to the AP fail");
     }
@@ -108,12 +110,14 @@ esp_err_t wifi_init_sta(void)
     {
         ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
                  ESP_WIFI_SSID, ESP_WIFI_PASS);
+        // esp_wifi_set_ps(WIFI_PS_NONE);
         ret = ESP_OK;
     }
     else if (bits & WIFI_FAIL_BIT)
     {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
                  ESP_WIFI_SSID, ESP_WIFI_PASS);
+        esp_wifi_stop();
         ret = ESP_FAIL;
     }
     else

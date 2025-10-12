@@ -20,6 +20,7 @@
 extern void udp_send_data(char *payload);
 extern void udp_socket_init(void);
 extern void udp_socket_close(void);
+extern QueueHandle_t bmi_upload_data_queue;
 
 /*
 SPI sender (master) example.
@@ -242,7 +243,7 @@ void bmi_spi_init(void)
 
 void poll_sensor(void)
 {
-    //udp_socket_init();
+    // udp_socket_init();
     char msg[128];
     xSemaphoreGive(rdySem);
     bmi160_data_t data;
@@ -253,26 +254,44 @@ void poll_sensor(void)
     data.gx = 0;
     data.gy = 0;
     data.gz = 0;
-
-    int64_t ms = 0;
+    // create queues for sending data
+    bmi_upload_data_queue = xQueueCreate(1, sizeof(data));
 
     while (1)
     {
         // if we timeout before we take the semaphore re init the bmi160
-        if (xSemaphoreTake(rdySem, 5000 / portTICK_PERIOD_MS) == pdFALSE)
+        if (xSemaphoreTake(rdySem, 1000 / portTICK_PERIOD_MS) == pdFALSE)
         {
             ESP_LOGW(TAG, "Semaphore timeout — waited full 5 seconds");
             bmi160_init();
         }
         bmi160_read_data(&data);
-        ms = esp_timer_get_time() / 1000;
-        // ESP_LOGI(TAG, "count is %d", data.seq);
         // snprintf(msg, sizeof(msg), "Time: %lld | Accel[g]: X=%.3f Y=%.3f Z=%.3f | Gyro[dps]: X=%.2f Y=%.2f Z=%.2f | SeqNo: %d \n", ms, data.ax, data.ay, data.az, data.gx, data.gy, data.gz, data.seq);
-        snprintf(msg, sizeof(msg), "%lld,%.3f,%.3f,%.3f,%.2f,%.2f,%.2f,%d \n", ms, data.ax, data.ay, data.az, data.gx, data.gy, data.gz, data.seq);
-       // udp_send_data(msg);
-        data.seq++;
+        // snprintf(msg, sizeof(msg), "%lld,%.3f,%.3f,%.3f,%.2f,%.2f,%.2f,%d \n", ms, data.ax, data.ay, data.az, data.gx, data.gy, data.gz, data.seq);
+        // udp_send_data(msg);
         // ESP_LOGI(TAG, "Accel[g]: X=%.3f Y=%.3f Z=%.3f | Gyro[dps]: X=%.2f Y=%.2f Z=%.2f", d.ax, d.ay, d.az, d.gx, d.gy, d.gz);
         // vTaskDelay(pdMS_TO_TICKS(500));
+        //ESP_LOGI(TAG, "count is %d", data.seq);
+        xQueueOverwrite(bmi_upload_data_queue, &data);
+        //ESP_LOGI("UDP", "%d", data.seq);
+        data.seq++;
+
     }
     // udp_socket_close();
+}
+
+void bmi_send_sensor_data_task(void *pvParameters)
+{
+    bmi160_data_t data;
+    char msg[128];
+    int64_t ms = 0;
+    for (;;)
+    {
+        if (xQueueReceive(bmi_upload_data_queue, &data, portMAX_DELAY) == pdTRUE)
+        {
+            ms = esp_timer_get_time() / 1000;
+            snprintf(msg, sizeof(msg), "%lld,%.3f,%.3f,%.3f,%.2f,%.2f,%.2f,%d \n", ms, data.ax, data.ay, data.az, data.gx, data.gy, data.gz, data.seq);
+            udp_send_data(msg);
+        }
+    }
 }
