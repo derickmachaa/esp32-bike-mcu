@@ -7,8 +7,9 @@ This is a bike mcu that combines BMI160 to detect when deceleration is happening
 | ----------------- | -------- |
 | IMU in Use (SPI protocol)       | BMI160  |
 
-##wifi config
-Wifi config is defined inside wifi_creds.h feel free to define any
+## wifi config
+Wifi configuration is defined inside wifi_creds.h feel free to modify to any value.
+
 Current value is
 | WIFI SSID | WIFI PASS |
 |-----------| -------|
