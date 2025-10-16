@@ -23,6 +23,9 @@ static TaskHandle_t bmi_send_sensor_data_task_handle = NULL;
 //Queues for data
 QueueHandle_t bmi_upload_data_queue = NULL;
 
+//Events for wifi and anything else I need
+EventGroupHandle_t s_wifi_event_group = NULL;
+
 #define BLINK_GPIO 2
 static uint8_t s_led_state = 0;
 esp_reset_reason_t reason;
@@ -44,6 +47,30 @@ esp_reset_reason_t reason;
 //         vTaskDelay(1000 / portTICK_PERIOD_MS);
 //     }
 // }
+
+const char *reset_reason_to_str(esp_reset_reason_t reason)
+{
+    switch (reason)
+    {
+        case ESP_RST_UNKNOWN:    return "UNKNOWN";
+        case ESP_RST_POWERON:    return "POWERON";
+        case ESP_RST_EXT:        return "EXT";
+        case ESP_RST_SW:         return "SW";
+        case ESP_RST_PANIC:      return "PANIC";
+        case ESP_RST_INT_WDT:    return "INT_WDT";
+        case ESP_RST_TASK_WDT:   return "TASK_WDT";
+        case ESP_RST_WDT:        return "WDT";
+        case ESP_RST_DEEPSLEEP:  return "DEEPSLEEP";
+        case ESP_RST_BROWNOUT:   return "BROWNOUT";
+        case ESP_RST_SDIO:       return "SDIO";
+        case ESP_RST_USB:        return "USB_RESET";
+        case ESP_RST_JTAG:       return "JTAG";
+        case ESP_RST_EFUSE:      return "EFUSE";
+        case ESP_RST_PWR_GLITCH: return "PWR_GLITCH";
+        case ESP_RST_CPU_LOCKUP: return "CPU_LOCKUP";
+        default:                 return "INVALID";
+    }
+}
 
 void stop_udp_server_task()
 {
@@ -98,7 +125,7 @@ void app_main(void)
 {
     // state why we are up
     reason = esp_reset_reason();
-    ESP_LOGI(TAG, "Reset reason: %d", reason);
+    ESP_LOGI(TAG, "Power up reason: %s", reset_reason_to_str(reason));
     // configure_gpio();
     ESP_LOGI(TAG, "Main app Start");
     // Initialize NVS.
@@ -120,11 +147,13 @@ void app_main(void)
     i2c_init();
     xTaskCreate(&poll_sensor, "BMI Sensor", 4096, NULL, 4, NULL);
 
-    // check whether to add udp and
+    // create a xevent group 
+    s_wifi_event_group = xEventGroupCreate();
     err = wifi_init_sta();
     if (err == ESP_OK)
     {
         // proceed to create udp and ota task
+        xTaskCreate(&stop_network_task, "network monitor task", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
         xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, &simple_ota_example_task_handle);
         xTaskCreate(&udp_server_task, "udp_server", 4096, (void *)AF_INET, 1, &udp_server_task_handle);
         xTaskCreate(&bmi_send_sensor_data_task, "bmi_upload", 4096,NULL, 5, &bmi_send_sensor_data_task_handle);

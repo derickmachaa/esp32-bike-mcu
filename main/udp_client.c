@@ -3,7 +3,7 @@
 #include "lwip/sockets.h"
 #include "esp_log.h"
 
-#define HOST_IP_ADDR "192.168.8.2"
+#define HOST_IP_ADDR "192.168.43.1"
 #define PORT 3337
 
 static const char *TAG = "BMCU_UDP";
