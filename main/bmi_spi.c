@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 #include "freertos/semphr.h"
 #include "esp_timer.h"
+#include "bmi_data.h"
 
 #define GPIO_DATA_READY 3
 #define PIN_NUM_MOSI 6
@@ -20,7 +21,6 @@
 extern void udp_send_data(char *payload);
 extern void udp_socket_init(void);
 extern void udp_socket_close(void);
-extern QueueHandle_t bmi_upload_data_queue;
 
 /*
 SPI sender (master) example.
@@ -193,14 +193,6 @@ static bool bmi160_init(void)
     return bmi_ready;
 }
 
-/* ===== READ ACCEL & GYRO ===== */
-typedef struct
-{
-    int seq;
-    float ax, ay, az; // g
-    float gx, gy, gz; // dps
-} bmi160_data_t;
-
 static void bmi160_read_data(bmi160_data_t *out)
 {
     uint8_t buf[12];
@@ -241,7 +233,7 @@ void bmi_spi_init(void)
     }
 }
 
-void poll_sensor(void)
+void poll_sensor(void *pvParameters)
 {
     // udp_socket_init();
     char msg[128];
@@ -254,8 +246,10 @@ void poll_sensor(void)
     data.gx = 0;
     data.gy = 0;
     data.gz = 0;
-    // create queues for sending data
-    bmi_upload_data_queue = xQueueCreate(1, sizeof(data));
+    // get the two queues
+    bmi_queues_t *queues = (bmi_queues_t*)pvParameters;
+    QueueHandle_t bmi_upload_data_queue = queues->bmi_upload_data_queue;
+    QueueHandle_t bmi_process_data_queue = queues->bmi_process_data_queue;
 
     while (1)
     {
@@ -271,11 +265,11 @@ void poll_sensor(void)
         // udp_send_data(msg);
         // ESP_LOGI(TAG, "Accel[g]: X=%.3f Y=%.3f Z=%.3f | Gyro[dps]: X=%.2f Y=%.2f Z=%.2f", d.ax, d.ay, d.az, d.gx, d.gy, d.gz);
         // vTaskDelay(pdMS_TO_TICKS(500));
-        //ESP_LOGI(TAG, "count is %d", data.seq);
+        // ESP_LOGI(TAG, "count is %d", data.seq);
         xQueueOverwrite(bmi_upload_data_queue, &data);
-        //ESP_LOGI("UDP", "%d", data.seq);
+        xQueueSend(bmi_process_data_queue, &data,0);
+        // ESP_LOGI("UDP", "%d", data.seq);
         data.seq++;
-
     }
     // udp_socket_close();
 }
@@ -283,6 +277,8 @@ void poll_sensor(void)
 void bmi_send_sensor_data_task(void *pvParameters)
 {
     bmi160_data_t data;
+    QueueHandle_t bmi_upload_data_queue = (QueueHandle_t)pvParameters;
+
     char msg[128];
     int64_t ms = 0;
     for (;;)
