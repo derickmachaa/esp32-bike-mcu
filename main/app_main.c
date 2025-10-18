@@ -54,7 +54,7 @@ const char *reset_reason_to_str(esp_reset_reason_t reason)
     {
         case ESP_RST_UNKNOWN:    return "UNKNOWN";
         case ESP_RST_POWERON:    return "POWERON";
-        case ESP_RST_EXT:        return "EXT";
+        case ESP_RST_EXT:        return "EXT_RST";
         case ESP_RST_SW:         return "SW";
         case ESP_RST_PANIC:      return "PANIC";
         case ESP_RST_INT_WDT:    return "INT_WDT";
