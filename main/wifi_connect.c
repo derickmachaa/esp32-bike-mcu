@@ -42,6 +42,7 @@ static void wifi_stop()
     ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &instance_got_ip));
     // stop wifi
     esp_wifi_stop();
+    vTaskDelay(pdMS_TO_TICKS(100));  // wait for background tasks
     // save some ram
     esp_wifi_deinit();
     esp_netif_deinit();

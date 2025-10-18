@@ -20,6 +20,7 @@
 #define MPU9250_RESET_BIT 7
 #define TAG "BMCU: i2c"
 extern int8_t storage_read_char();
+extern bool BMCU_TAILLIGHT_ENABLE;
 
 static SemaphoreHandle_t cmd_mutex = NULL;
 // LED address
@@ -151,6 +152,7 @@ void i2c_init(void)
     ESP_LOGI(TAG, "last state was %c", last_state);
     if (last_state == 'O')
     {
+        BMCU_TAILLIGHT_ENABLE = false;
         send_off_signal();
     }
     else
