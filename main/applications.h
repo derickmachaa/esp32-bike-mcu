@@ -10,3 +10,4 @@ extern esp_err_t wifi_init_sta(void);
 extern void bmi_send_sensor_data_task(void *pvParameters);
 extern void stop_network_task(void *pvParameters);
 extern void detect_brake_1(void *pvParameters);
+extern void ble_init();

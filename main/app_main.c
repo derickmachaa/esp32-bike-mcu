@@ -163,6 +163,7 @@ void app_main(void)
     // start sensors first wifi is slow will pickup later
     bmi_spi_init();
     i2c_init();
+    ble_init();
     // create queues for sending data
     QueueHandle_t bmi_upload_data_queue = xQueueCreate(1, QUEUE_ITEM_SIZE);
     QueueHandle_t bmi_pocess_data_queue = xQueueCreate(QUEUE_LENGTH, QUEUE_ITEM_SIZE);
@@ -174,7 +175,6 @@ void app_main(void)
 
     xTaskCreate(&poll_sensor, "BMI Sensor", configMINIMAL_STACK_SIZE+512, (void *)&data_queue , 5, NULL);
     xTaskCreate(&detect_brake_1, "Detect Brake", 4096, (void *)bmi_pocess_data_queue, 4, NULL);
-
     // create a xevent group
     s_wifi_event_group = xEventGroupCreate();
     err = wifi_init_sta();
