@@ -16,6 +16,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_netif.h"
+#include "runtime_data.h"
 
 #include "lwip/err.h"
 #include "lwip/sockets.h"
@@ -24,12 +25,6 @@
 #define PORT 3337
 
 static const char *TAG = "BMCU: udp_server";
-extern void send_left_signal();
-extern void send_right_signal();
-extern void send_brake_signal();
-extern void send_normal_signal();
-extern void send_off_signal();
-extern void storage_write_char(char mychar);
 
 static void command_handler(char *command)
 {
@@ -50,10 +45,12 @@ static void command_handler(char *command)
     case 'O':
         send_off_signal();
         storage_write_char('O');
+        BMCU_TAILLIGHT_ENABLE  = false;
         break;
     case 'S':
         send_normal_signal();
         storage_write_char('S');
+        BMCU_TAILLIGHT_ENABLE = true;
         break;
     default:
         break;

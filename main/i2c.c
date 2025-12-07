@@ -5,6 +5,7 @@
 #include "esp_log.h"
 #include "driver/i2c_master.h"
 #include "semaphore.h"
+#include "runtime_data.h"
 
 #define I2C_MASTER_SCL_IO CONFIG_I2C_MASTER_SCL        /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO CONFIG_I2C_MASTER_SDA        /*!< GPIO number used for I2C master data  */
@@ -19,13 +20,10 @@
 #define MPU9250_PWR_MGMT_1_REG_ADDR 0x6B /*!< Register addresses of the power management register */
 #define MPU9250_RESET_BIT 7
 #define TAG "BMCU: i2c"
-extern int8_t storage_read_char();
-extern bool BMCU_TAILLIGHT_ENABLE;
 
 static SemaphoreHandle_t cmd_mutex = NULL;
 // LED address
 #define LED_ADDR 0x8
-char lastCommand;
 static i2c_master_dev_handle_t dev_led;
 static i2c_master_dev_handle_t dev_mpu;
 
@@ -147,17 +145,13 @@ void i2c_init(void)
     // send B
     send_brake_signal();
     vTaskDelay(1200 / portTICK_PERIOD_MS);
-    // send last state
-    char last_state = storage_read_char();
-    ESP_LOGI(TAG, "last state was %c", last_state);
-    if (last_state == 'O')
+    if (BMCU_TAILLIGHT_ENABLE)
     {
-        BMCU_TAILLIGHT_ENABLE = false;
-        send_off_signal();
+        send_normal_signal();
     }
     else
     {
-        send_normal_signal();
+        send_off_signal();
     }
     // if (retuned != ESP_OK)
     // {

@@ -15,10 +15,7 @@ Z------> Sideways
 #include "freertos/queue.h"
 #include "bmi_data.h"
 #include "math.h"
-extern void send_brake_signal(void);
-extern void send_normal_signal(void);
-extern void send_off_signal(void);
-extern bool BMCU_TAILLIGHT_ENABLE;
+#include "runtime_data.h"
 
 #define BRAKE_THRESHOLD -0.15f // Braking threshold in g
 #define DECEL_MIN_COUNT 4      // Min decreasing samples for braking
@@ -103,7 +100,7 @@ void detect_brake_1(void *pvParameters)
     {
         // Log stack usage (uncomment for debugging)
         // UBaseType_t stack_high_water_mark = uxTaskGetStackHighWaterMark(NULL);
-        // ESP_LOGI(TAG, "Stack high water mark: %u words (%u bytes)", 
+        // ESP_LOGI(TAG, "Stack high water mark: %u words (%u bytes)",
         //          stack_high_water_mark, stack_high_water_mark * sizeof(StackType_t));
 
         if (xQueueReceive(detect_brake_data_queue, &data, portMAX_DELAY) == pdTRUE)

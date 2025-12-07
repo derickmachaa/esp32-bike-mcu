@@ -28,6 +28,7 @@
 #include "esp_gatt_common_api.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include "runtime_data.h"
 
 #define GATTC_TAG "BMCU: BLE"
 #define REMOTE_SERVICE_UUID 0xAAAA
@@ -38,9 +39,6 @@
 #if CONFIG_EXAMPLE_INIT_DEINIT_LOOP
 #define EXAMPLE_TEST_COUNT 50
 #endif
-extern void send_left_signal(void);
-extern void send_right_signal(void);
-extern void send_normal_signal(void);
 
 static char remote_device_name[ESP_BLE_ADV_NAME_LEN_MAX] = "ESP32";
 static bool connect = false;
@@ -323,7 +321,7 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             ESP_LOGI(GATTC_TAG, "Indication received");
         }
         ESP_LOG_BUFFER_HEX(GATTC_TAG, p_data->notify.value, p_data->notify.value_len);
-        char cmd =*p_data->notify.value;
+        char cmd = *p_data->notify.value;
         switch (cmd)
         {
         case 'L':
@@ -333,7 +331,14 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             send_right_signal();
             break;
         case 'N':
-            send_normal_signal();
+            if (BMCU_TAILLIGHT_ENABLE)
+            {
+                send_normal_signal();
+            }
+            else
+            {
+                send_off_signal();
+            }
             break;
         default:
             break;

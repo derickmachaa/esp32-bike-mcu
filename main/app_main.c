@@ -13,14 +13,16 @@
 #include "driver/gpio.h"
 #include <sys/socket.h>
 #include "bmi_data.h"
+#include "runtime_data.h"
 
 const char *TAG = "BMCU: main";
+char lastCommand = 'N';            // ✔ this allocates space to the compiler and gives  a default incase things break
+bool BMCU_TAILLIGHT_ENABLE = true; // start lights auto
 
 // Task handles
 static TaskHandle_t udp_server_task_handle = NULL;
 static TaskHandle_t simple_ota_example_task_handle = NULL;
 static TaskHandle_t bmi_send_sensor_data_task_handle = NULL;
-bool BMCU_TAILLIGHT_ENABLE = true;
 // Queues for data
 #define QUEUE_LENGTH 10 // Buffer ~50ms at 200Hz
 #define QUEUE_ITEM_SIZE sizeof(bmi160_data_t)
@@ -160,6 +162,18 @@ void app_main(void)
     }
 
     ESP_ERROR_CHECK(err);
+    // get last saved state
+    // send last state
+    char last_state = storage_read_char();
+    ESP_LOGI(TAG, "last state was %c", last_state);
+    if (last_state == 'O')
+    {
+        BMCU_TAILLIGHT_ENABLE = false;
+    }
+    else
+    {
+        BMCU_TAILLIGHT_ENABLE = true;
+    }
     // start sensors first wifi is slow will pickup later
     bmi_spi_init();
     i2c_init();
@@ -170,10 +184,9 @@ void app_main(void)
     // Bundle queue handles for the reading task
     bmi_queues_t data_queue = {
         .bmi_process_data_queue = bmi_pocess_data_queue,
-        .bmi_upload_data_queue = bmi_upload_data_queue
-    };
+        .bmi_upload_data_queue = bmi_upload_data_queue};
 
-    xTaskCreate(&poll_sensor, "BMI Sensor", configMINIMAL_STACK_SIZE+512, (void *)&data_queue , 5, NULL);
+    xTaskCreate(&poll_sensor, "BMI Sensor", configMINIMAL_STACK_SIZE + 512, (void *)&data_queue, 5, NULL);
     xTaskCreate(&detect_brake_1, "Detect Brake", 4096, (void *)bmi_pocess_data_queue, 4, NULL);
     // create a xevent group
     s_wifi_event_group = xEventGroupCreate();
